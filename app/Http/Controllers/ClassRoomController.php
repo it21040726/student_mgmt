@@ -1,59 +1,53 @@
 <?php
 
 namespace App\Http\Controllers;
-use App\Models\ClassRoom;
+
+use App\Models\Classroom;
 use Illuminate\Http\Request;
 
 class ClassRoomController extends Controller
 {
     public function index()
     {
-        return view('components.ClassRoom');
-    }
-
-    public function create()
-    {
-        return view('classrooms.create');
+        $classes = Classroom::all();
+        return view('classrooms.index', compact('classes'));
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'class_ID' => 'required|string|unique:class_rooms,class_ID',
-            'class_name' => 'required|string',
+        $data = $request->validate([
+            'class_id' => 'required|unique:classrooms',
+            'class_name' => 'required'
         ]);
 
-        ClassRoom::create($request->only('class_ID', 'class_name'));
+        Classroom::create($data);
 
-        return redirect()->route('classroom.index')->with('success', 'Class added successfully.');
+        return back()->with('success', 'Class added.');
     }
 
-    public function show(ClassRoom $classroom)
+    public function update(Request $request, $id)
     {
-        // optional - not used here
-        return view('classrooms.show', compact('classroom'));
-    }
-
-    public function edit(ClassRoom $classroom)
-    {
-        return view('classrooms.edit', compact('classroom'));
-    }
-
-    public function update(Request $request, ClassRoom $classroom)
-    {
-        $request->validate([
-            'class_ID' => 'required|string|unique:class_rooms,class_ID,' . $classroom->id,
-            'class_name' => 'required|string',
+        $classroom = Classroom::findOrFail($id);
+        $data = $request->validate([
+            'class_name' => 'required'
         ]);
 
-        $classroom->update($request->only('class_ID', 'class_name'));
+        $classroom->update($data);
 
-        return redirect()->route('classroom.index')->with('success', 'Class updated successfully.');
+        return back()->with('success', 'Class updated.');
     }
 
-    public function destroy(ClassRoom $classroom)
+    public function destroy($id)
     {
+        $classroom = Classroom::findOrFail($id);
         $classroom->delete();
-        return redirect()->route('classroom.index')->with('success', 'Class deleted.');
+        return back()->with('success', 'Class deleted.');
+    }
+
+    public function search(Request $request)
+    {
+        $term = $request->input('query');
+        $classes = Classroom::where('class_name', 'LIKE', "%$term%")->get();
+        return view('classrooms.index', compact('classes'));
     }
 }

@@ -1,11 +1,11 @@
-@include('students.head')
+@include('components.head')
 <!--begin::App Wrapper-->
 <div class="app-wrapper">
     <!--begin::Header-->
-    @include('students.navbar')
+    @include('components.navbar')
     <!--end::Header-->
     <!--begin::Sidebar-->
-    @include('students.sidebar')
+    @include('components.sidebar')
     <!--end::Sidebar-->
     <!--begin::App Main-->
     <main class="app-main">
@@ -56,10 +56,10 @@
 {{--    </main>--}}
 <!--end::App Main-->
 <!--begin::Footer-->
-@include('students.footer')
+@include('components.footer')
 <!--end::Footer-->
 </div>
 <!--end:: App Wrapper-->
 <!--begin::Script-->
 <!--begin:: Third Party Plugin (OverlayScrollbars)-->
-@include('students.script')
+@include('components.script')

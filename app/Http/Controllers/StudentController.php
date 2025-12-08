@@ -9,7 +9,21 @@ class StudentController extends Controller
 {
     public function index()
     {
-        return view('components.Student');
+        $students = Student::all();
+        return view('students.index', compact('students'));  
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->query('query');
+
+        $students = Student::where('id', $query)
+            ->orWhere('first_name', 'LIKE', "%$query%")
+            ->orWhere('last_name', 'LIKE', "%$query%")
+            ->orWhere('email', 'LIKE', "%$query%")
+            ->get();
+
+        return view('students.index', compact('students'));
     }
 
     public function create()
@@ -67,18 +81,6 @@ class StudentController extends Controller
             ->with('success', 'Student deleted successfully');
     }
 
-   public function search(Request $request)
-{
-    $query = $request->input('query');
-
-    $students = Student::where('id', $query)
-                ->orWhere('first_name', 'LIKE', "%{$query}%")
-                ->orWhere('last_name', 'LIKE', "%{$query}%")
-                ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"])
-                ->orWhere('email', 'LIKE', "%{$query}%")
-                ->get();
-
-    return view('students.index', compact('students'));
-}
+   
 
 }

@@ -7,12 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class Teacher extends Model
 {
     protected $fillable = [
-        'first_name',
-        'last_name',
+        'teacher_id',
+        'name',
+        'address',
+        'nic',
         'email',
-        'phone',
-        'DOB',
-        'gender',
-        'address'
+        'phone1',
+        'phone2',
+        'username',
+        'password',
+        'subjects',
+        'grades'
     ];
+
+    protected $hidden = ['password'];
 }

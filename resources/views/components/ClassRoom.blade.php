@@ -4,7 +4,7 @@
 
         <div class="col-12">
 
-            <h2>ClassRoom</h2>
+            <h2>Classes</h2>
 
         </div>
 

@@ -1,14 +1,12 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Subjects extends Model
+class Subject extends Model
 {
     protected $fillable = [
-        'Subject Code',
-        'Subject Name',
-
+        'subject_code',
+        'subject_name'
     ];
 }
