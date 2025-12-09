@@ -17,6 +17,9 @@ Route::get('/login', [AdminController::class, 'loginPage'])->name('admin.login')
 Route::post('/login', [AdminController::class, 'login'])->name('admin.login.submit');
 
 Route::middleware([AdminAuth::class])->group(function () {
+    // Root Route
+    Route::get('/', [DashboardController::class, 'index'])->name('root');
+    
     // Admin Routes
     Route::get('/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
