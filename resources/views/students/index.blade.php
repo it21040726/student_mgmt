@@ -27,7 +27,7 @@
         <table class="table table-hover align-middle">
             <thead class="table-light">
             <tr>
-                <th>#</th>
+                <th>Student ID</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>

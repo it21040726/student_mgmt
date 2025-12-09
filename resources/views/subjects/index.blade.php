@@ -2,19 +2,19 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold">Grade Management</h3>
+    <h3 class="fw-bold">Subject Management</h3>
 </div>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between mb-3">
-        <form action="{{ route('grades.search') }}" method="GET" class="d-flex w-50">
+        <form action="{{ route('subjects.search') }}" method="GET" class="d-flex w-50">
             <input type="text" name="query" value="{{ request('query') }}"
-                   class="form-control me-2" placeholder="Search by Grade Name">
+                   class="form-control me-2" placeholder="Search by Subject Name">
             <button class="btn btn-primary" type="submit">Search</button>
         </form>
 
         <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#addModal">
-            + Add Grade
+            + Add Subject
         </button>
     </div>
 </div>
@@ -38,31 +38,34 @@
     <table class="table table-hover align-middle">
         <thead class="table-light">
         <tr>
-            <th>Grade ID</th>
-            <th>Grade Name</th>
+            <th>Subject ID</th>
+            <th>Subject Code</th>
+            <th>Subject Name</th>
             <th style="width: 150px">Actions</th>
         </tr>
         </thead>
 
         <tbody>
-        @foreach($grades as $grade)
+        @foreach($subjects as $subject)
             <tr>
-                <td>{{ $grade->id }}</td>
-                <td>{{ $grade->grade_name }}</td>
+                <td>{{ $subject->id }}</td>
+                <td>{{ $subject->subject_code }}</td>
+                <td>{{ $subject->subject_name }}</td>
 
                 <td>
                     <div class="d-flex gap-2">
                         <button class="btn btn-warning btn-sm editBtn"
-                            data-id="{{ $grade->id }}"
-                            data-grade_name="{{ $grade->grade_name }}"
+                            data-id="{{ $subject->id }}"
+                            data-subject_name="{{ $subject->subject_name }}"
+                            data-subject_code="{{ $subject->subject_code }}"
                         >
                             ✏️ Edit
                         </button>
 
-                        <form action="{{ route('grades.destroy', $grade->id) }}" method="POST" style="display: inline;">
+                        <form action="{{ route('subjects.destroy', $subject->id) }}" method="POST" style="display: inline;">
                             @csrf 
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this grade?')">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this subject?')">
                                 🗑️ Delete
                             </button>
                         </form>
@@ -79,17 +82,23 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">Add Grade</h5>
+                <h5 class="modal-title fw-bold">Add Subject</h5>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <form action="{{ route('grades.store') }}" method="POST">
+            <form action="{{ route('subjects.store') }}" method="POST">
                 @csrf
 
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Grade Name *</label>
-                        <input name="grade_name" class="form-control" placeholder="e.g., Grade 10" required>
+                        <label class="form-label">Subject Code *</label>
+                        <input name="subject_code" class="form-control" placeholder="e.g., M001" required>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Subject Name *</label>
+                        <input name="subject_name" class="form-control" placeholder="e.g., Maths" required>
                     </div>
                 </div>
 
@@ -106,7 +115,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">Edit Grade</h5>
+                <h5 class="modal-title fw-bold">Edit Subject</h5>
                 <button class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
@@ -116,8 +125,14 @@
 
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Grade Name *</label>
-                        <input id="edit_grade_name" name="grade_name" class="form-control" required>
+                        <label class="form-label">Subject Code *</label>
+                        <input id="edit_subject_code" name="subject_code" class="form-control" placeholder="e.g., M001" required>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Subject Name *</label>
+                        <input id="edit_subject_name" name="subject_name" class="form-control" placeholder="e.g., Maths" required>
                     </div>
                 </div>
 
@@ -139,16 +154,17 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.addEventListener('click', function () {
             const id = this.dataset.id;
 
-            document.getElementById('edit_grade_name').value = this.dataset.grade_name || '';
+            document.getElementById('edit_subject_code').value = this.dataset.subject_code || '';
+            document.getElementById('edit_subject_name').value = this.dataset.subject_name || '';
 
-            document.getElementById('editForm').action = `/grades/${id}`;
+            document.getElementById('editForm').action = `/subjects/${id}`;
 
             modal.show();
         });
     });
 
     @if ($errors->any())
-        @if(old('grade_name'))
+        @if(old('subject_name') || old('subject_code'))
             modal.show();
         @endif
     @endif

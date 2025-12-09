@@ -47,7 +47,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('classroom.index')}}" class="nav-link">
+                            <a href="{{route('classes.index')}}" class="nav-link">
                                 <i class="nav-icon bi bi-circle"></i>
                                 <p>Classroom</p>
                             </a>
@@ -59,7 +59,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{route('grade.index')}}" class="nav-link">
+                            <a href="{{route('grades.index')}}" class="nav-link">
                                 <i class="nav-icon bi bi-circle"></i>
                                 <p>Grade</p>
                             </a>

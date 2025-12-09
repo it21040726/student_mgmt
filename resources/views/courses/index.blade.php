@@ -94,11 +94,7 @@
 
                 <div class="modal-body">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Course ID *</label>
-                            <input name="course_id" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <label class="form-label">Course Name *</label>
                             <input name="course_name" class="form-control" required>
                         </div>

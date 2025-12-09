@@ -39,7 +39,6 @@
     <table class="table table-hover align-middle">
         <thead class="table-light">
         <tr>
-            <th>#</th>
             <th>Teacher ID</th>
             <th>Name</th>
             <th>Email</th>
@@ -54,7 +53,6 @@
         @foreach($teachers as $t)
             <tr>
                 <td>{{ $t->id }}</td>
-                <td>{{ $t->teacher_id }}</td>
                 <td>{{ $t->name }}</td>
                 <td>{{ $t->email }}</td>
                 <td>{{ $t->phone1 }} / {{ $t->phone2 }}</td>
@@ -66,7 +64,6 @@
 
                         <button class="btn btn-warning btn-sm editBtn"
                             data-id="{{ $t->id }}"
-                            data-teacher_id="{{ $t->teacher_id }}"
                             data-name="{{ $t->name }}"
                             data-address="{{ $t->address }}"
                             data-nic="{{ $t->nic }}"
@@ -111,15 +108,14 @@
 
             <div class="modal-body">
                 <div class="row g-3">
-
-                    <div class="col-md-4">
-                        <label class="form-label">Teacher ID *</label>
-                        <input name="teacher_id" class="form-control" required>
-                    </div>
-
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <label class="form-label">Name *</label>
                         <input name="name" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Email *</label>
+                        <input name="email" type="email" class="form-control" required>
                     </div>
 
                     <div class="col-md-12">
@@ -130,11 +126,6 @@
                     <div class="col-md-6">
                         <label class="form-label">NIC *</label>
                         <input name="nic" class="form-control" required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Email *</label>
-                        <input name="email" type="email" class="form-control" required>
                     </div>
 
                     <div class="col-md-6">
@@ -195,14 +186,14 @@
             <div class="modal-body">
                 <div class="row g-3">
 
-                    <div class="col-md-4">
-                        <label class="form-label">Teacher ID *</label>
-                        <input id="edit_teacher_id" name="teacher_id" class="form-control" required>
-                    </div>
-
-                    <div class="col-md-8">
+                    <div class="col-md-6">
                         <label class="form-label">Name *</label>
                         <input id="edit_name" name="name" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Email *</label>
+                        <input id="edit_email" name="email" type="email" class="form-control" required>
                     </div>
 
                     <div class="col-md-12">
@@ -213,11 +204,6 @@
                     <div class="col-md-6">
                         <label class="form-label">NIC *</label>
                         <input id="edit_nic" name="nic" class="form-control" required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Email *</label>
-                        <input id="edit_email" name="email" type="email" class="form-control" required>
                     </div>
 
                     <div class="col-md-6">
@@ -274,7 +260,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const id = this.dataset.id;
 
             // Populate form fields
-            document.getElementById('edit_teacher_id').value = this.dataset.teacher_id || '';
             document.getElementById('edit_name').value = this.dataset.name || '';
             document.getElementById('edit_address').value = this.dataset.address || '';
             document.getElementById('edit_nic').value = this.dataset.nic || '';
@@ -300,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Reopen modal if there are validation errors
     @if ($errors->any())
         // Check if we have old input, which indicates a failed form submission
-        @if(old('teacher_id') || old('name'))
+        @if(old('name'))
             modal.show();
         @endif
     @endif

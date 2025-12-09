@@ -16,7 +16,6 @@ class ClassRoomController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'class_id' => 'required|unique:classrooms',
             'class_name' => 'required'
         ]);
 
@@ -47,7 +46,9 @@ class ClassRoomController extends Controller
     public function search(Request $request)
     {
         $term = $request->input('query');
-        $classes = Classroom::where('class_name', 'LIKE', "%$term%")->get();
+        $classes = Classroom::where('id', 'LIKE', "%$term%")
+            ->orWhere('class_name', 'LIKE', "%$term%")
+            ->get();
         return view('classrooms.index', compact('classes'));
     }
 }

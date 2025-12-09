@@ -16,7 +16,6 @@ class GradeController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'grade_id' => 'required|unique:grades',
             'grade_name' => 'required'
         ]);
 
@@ -47,7 +46,9 @@ class GradeController extends Controller
     public function search(Request $request)
     {
         $term = $request->input('query');
-        $grades = Grade::where('grade_name', 'LIKE', "%$term%")->get();
+        $grades = Grade::where('id', 'LIKE', "%$term%")
+        ->orWhere('grade_name', 'LIKE', "%$term%")
+        ->get();
         return view('grades.index', compact('grades'));
     }
 }

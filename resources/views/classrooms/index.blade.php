@@ -87,11 +87,7 @@
                 @csrf
 
                 <div class="modal-body">
-                    <div class="mb-6">
-                        <label class="form-label">Class ID *</label>
-                        <input name="class_id" class="form-control" placeholder="e.g., 10-A" required>
-                    </div>
-                    <div class="mb-6">
+                    <div class="mb-3">
                         <label class="form-label">Class Name *</label>
                         <input name="class_name" class="form-control" placeholder="e.g., 10-A" required>
                     </div>

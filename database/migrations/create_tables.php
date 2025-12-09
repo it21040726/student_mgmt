@@ -10,7 +10,6 @@ return new class extends Migration
     {
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
-            $table->string('teacher_id')->unique();
             $table->string('name');
             $table->string('address');
             $table->string('nic');
@@ -26,7 +25,6 @@ return new class extends Migration
 
         Schema::create('students', function (Blueprint $table) {
             $table->id();
-            $table->string('student_id')->unique();
             $table->string('name');
             $table->string('address');
             $table->string('email')->unique();
@@ -41,7 +39,6 @@ return new class extends Migration
         
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
-            $table->string('course_id')->unique();
             $table->string('course_name');
             $table->string('course_code')->unique();
             $table->string('course_category');
@@ -57,21 +54,29 @@ return new class extends Migration
 
         Schema::create('grades', function (Blueprint $table) {
             $table->id();
-            $table->string('grade_id')->unique();
             $table->string('grade_name');
             $table->timestamps();
         });
 
         Schema::create('classrooms', function (Blueprint $table) {
             $table->id();
-            $table->string('class_id')->unique();
             $table->string('class_name');
+            $table->timestamps();
+        });
+
+        Schema::create('admins', function (Blueprint $table) {
+            $table->id();
+            $table->string('firstname');
+            $table->string('lastname');
+            $table->string('username')->unique();
+            $table->string('password');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('admins');
         Schema::dropIfExists('teachers');
         Schema::dropIfExists('students');
         Schema::dropIfExists('courses');

@@ -14,7 +14,6 @@ class TeacherController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'teacher_id' => 'required|unique:teachers',
             'name' => 'required',
             'address' => 'required',
             'nic' => 'required',
@@ -38,7 +37,6 @@ class TeacherController extends Controller
         $teacher = Teacher::findOrFail($id);
         
         $data = $request->validate([
-            'teacher_id' => 'required|unique:teachers,teacher_id,' . $teacher->id,
             'name' => 'required',
             'address' => 'required',
             'nic' => 'required',
@@ -71,7 +69,7 @@ class TeacherController extends Controller
     {
         $query = $request->input('query'); // FIX: was $request->query
         
-        $teachers = Teacher::where('teacher_id', 'LIKE', "%$query%")
+        $teachers = Teacher::where('id', 'LIKE', "%$query%")
             ->orWhere('name', 'LIKE', "%$query%")
             ->orWhere('email', 'LIKE', "%$query%")
             ->get();

@@ -16,7 +16,6 @@ class CourseController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'course_id' => 'required|unique:courses',
             'course_name' => 'required',
             'course_code' => 'required',
             'course_category' => 'required',
@@ -52,8 +51,7 @@ class CourseController extends Controller
     {
         $term = $request->input('query');
 
-        $courses = Course::where('course_id', 'LIKE', "%$term%")
-            ->orWhere('course_name', 'LIKE', "%$term%")
+        $courses = Course::where('id', 'LIKE', "%$term%")
             ->orWhere('course_code', 'LIKE', "%$term%")
             ->get();
 

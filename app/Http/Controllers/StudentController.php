@@ -17,7 +17,7 @@ class StudentController extends Controller
     {
         $query = $request->query('query');
 
-        $students = Student::where('id', $query)
+        $students = Student::where('id', 'LIKE', "%$term%")
             ->orWhere('first_name', 'LIKE', "%$query%")
             ->orWhere('last_name', 'LIKE', "%$query%")
             ->orWhere('email', 'LIKE', "%$query%")
