@@ -16,8 +16,14 @@ class Teacher extends Model
         'username',
         'password',
         'subjects',
-        'grades'
+        'grades',
+        'id_front',
+        'id_back'
     ];
 
     protected $hidden = ['password'];
+    protected $casts = [
+        'subjects' => 'array',
+        'grades'   => 'array',
+    ];
 }

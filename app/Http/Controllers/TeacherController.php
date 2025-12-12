@@ -1,32 +1,60 @@
 <?php
 namespace App\Http\Controllers;
 use App\Models\Teacher;
+use App\Models\Grade;
+use App\Models\Subject;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class TeacherController extends Controller
 {
     public function index()
     {
         $teachers = Teacher::all();
-        return view('teachers.index', compact('teachers'));
+        $grades = Grade::all();
+        $subjects = Subject::all();
+        return view('teachers.index', compact('teachers', 'subjects', 'grades'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required',
-            'address' => 'required',
-            'nic' => 'required',
-            'email' => 'required|email',
-            'phone1' => 'required',
-            'phone2' => 'nullable',
-            'username' => 'required',
-            'password' => 'required',
-            'subjects' => 'required',
-            'grades' => 'required'
+            'name'      => 'required',
+            'address'   => 'required',
+            'nic'       => 'required',
+            'email'     => 'required|email',
+            'phone1'    => 'required',
+            'phone2'    => 'nullable',
+            'username'  => 'required',
+            'password'  => 'required',
+            'subjects'  => 'required',
+            'grades'    => 'required',
+            'id_front'  => 'required|image|max:2048',
+            'id_back'   => 'required|image|max:2048'
         ]);
 
+        $id_front_path = null;
+        $id_back_path = null;
+
+        if ($request->hasFile('id_front')) {
+            $filename = "teacher_{$data['username']}_front_" . time() . '.' . $request->id_front->extension();
+            $id_front_path = $request->id_front->storeAs('id_cards', $filename, 'public');
+        }
+
+        if ($request->hasFile('id_back')) {
+            $filename = "teacher_{$data['username']}_back_" . time() . '.' . $request->id_back->extension();
+            $id_back_path = $request->id_back->storeAs('id_cards', $filename, 'public');
+        }
+
+        // Hash password
         $data['password'] = bcrypt($data['password']);
+
+        // Convert arrays to JSON for DB storage
+        $data['subjects'] = json_encode($data['subjects']);
+        $data['grades']   = json_encode($data['grades']);
+        $data['id_front'] = $id_front_path;
+        $data['id_back'] = $id_back_path;
+
         Teacher::create($data);
 
         return back()->with('success', 'Teacher added successfully.');
@@ -44,9 +72,29 @@ class TeacherController extends Controller
             'phone1' => 'required',
             'phone2' => 'nullable',
             'username' => 'required|unique:teachers,username,' . $teacher->id,
-            'subjects' => 'required',
-            'grades' => 'required'
+            'subjects' => 'required|array',
+            'grades' => 'required|array'
         ]);
+
+        if ($request->hasFile('id_front')) {
+            if ($teacher->id_front) {
+                Storage::disk('public')->delete($teacher->id_front);
+            }
+            $data['id_front'] = $request->file('id_front')->store('id_cards', 'public');
+        }
+
+        if ($request->hasFile('id_back')) {
+            if ($teacher->id_back) {
+                Storage::disk('public')->delete($teacher->id_back);
+            }
+            $data['id_back'] = $request->file('id_back')->store('id_cards', 'public');
+        }
+
+        $subjects = $request->input('subjects');
+        $grades = $request->input('grades');
+
+        $data['subjects'] = json_encode($subjects);
+        $data['grades'] = json_encode($grades);
 
         // Only update password if provided
         if ($request->filled('password')) {

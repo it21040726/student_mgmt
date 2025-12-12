@@ -65,10 +65,18 @@
                             ✏️ Edit
                         </button>
 
-                        <form action="{{ route('courses.destroy', $course->id) }}" method="POST" style="display: inline;">
+                        <!-- <form action="{{ route('courses.destroy', $course->id) }}" method="POST" style="display: inline;">
                             @csrf 
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this course?')">
+                                🗑️ Delete
+                            </button>
+                        </form> -->
+
+                        <form method="POST" action="{{ route('courses.destroy', $course->id) }}" class="d-inline deleteForm">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" class="btn btn-danger btn-sm deleteBtn">
                                 🗑️ Delete
                             </button>
                         </form>
@@ -184,6 +192,33 @@ document.addEventListener('DOMContentLoaded', function () {
             modal.show();
         @endif
     @endif
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const deleteButtons = document.querySelectorAll('.deleteBtn');
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const form = this.closest('.deleteForm');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+
 });
 </script>
 

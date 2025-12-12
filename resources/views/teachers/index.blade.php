@@ -56,8 +56,16 @@
                 <td>{{ $t->name }}</td>
                 <td>{{ $t->email }}</td>
                 <td>{{ $t->phone1 }} / {{ $t->phone2 }}</td>
-                <td>{{ $t->subjects }}</td>
-                <td>{{ $t->grades }}</td>
+                <td>
+                    @foreach(json_decode($t->subjects) as $s)
+                        <p>{{ $s }}</p>
+                    @endforeach
+                </td>
+                <td>
+                    @foreach(json_decode($t->grades) as $g)
+                        <p>{{ $g }}</p>
+                    @endforeach
+                </td>
 
                 <td>
                     <div class="d-flex gap-2">
@@ -70,17 +78,27 @@
                             data-email="{{ $t->email }}"
                             data-phone1="{{ $t->phone1 }}"
                             data-phone2="{{ $t->phone2 }}"
-                            data-subjects="{{ $t->subjects }}"
-                            data-grades="{{ $t->grades }}"
+                            data-subjects='@json($t->subjects)'
+                            data-grades='@json($t->grades)'
                             data-username="{{ $t->username }}"
+                            data-id_front="{{ $t->id_front }}"
+                            data-id_back="{{ $t->id_back }}"
                         >
                             ✏️ Edit
                         </button>
 
-                        <form action="{{ route('teachers.destroy', $t->id) }}" method="POST" style="display: inline;">
+                        <!-- <form action="{{ route('teachers.destroy', $t->id) }}" method="POST" style="display: inline;">
                             @csrf 
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete teacher?')">
+                                🗑️ Delete
+                            </button>
+                        </form> -->
+
+                        <form method="POST" action="{{ route('teachers.destroy', $t->id) }}" class="d-inline deleteForm">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" class="btn btn-danger btn-sm deleteBtn">
                                 🗑️ Delete
                             </button>
                         </form>
@@ -103,7 +121,7 @@
             <button class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
-        <form action="{{ route('teachers.store') }}" method="POST">
+        <form action="{{ route('teachers.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="modal-body">
@@ -118,7 +136,7 @@
                         <input name="email" type="email" class="form-control" required>
                     </div>
 
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label class="form-label">Address *</label>
                         <input name="address" class="form-control" required>
                     </div>
@@ -126,6 +144,20 @@
                     <div class="col-md-6">
                         <label class="form-label">NIC *</label>
                         <input name="nic" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Identity Card Front</label>
+                        <input type="file" name="id_front" accept="image/*" 
+                            onchange="previewImage(this, 'create_front_preview')" class="form-control">
+                        <img id="create_front_preview" style="display:none;width:150px;margin-top:10px;" />    
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Identity Card Back</label>
+                        <input type="file" name="id_back" accept="image/*" 
+                            onchange="previewImage(this, 'create_back_preview')" class="form-control">
+                        <img id="create_back_preview" style="display:none;width:150px;margin-top:10px;" />
                     </div>
 
                     <div class="col-md-6">
@@ -140,12 +172,22 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Subjects *</label>
-                        <input name="subjects" class="form-control" placeholder="Maths, Science" required>
+                        <select name="subjects[]" class="form-control" multiple required>
+                            @foreach($subjects as $s)
+                            <option value="{{ $s->subject_name }}">{{ $s->subject_name }}</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple.</small>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Grades *</label>
-                        <input name="grades" class="form-control" placeholder="10, 11" required>
+                        <select name="grades[]" class="form-control" multiple required>
+                            @foreach($grades as $g)
+                            <option value="{{ $g->grade_name }}">{{ $g->grade_name }}</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple.</small>
                     </div>
 
                     <div class="col-md-6">
@@ -179,7 +221,7 @@
             <button class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
-        <form id="editForm" method="POST">
+        <form id="editForm" method="POST" enctype="multipart/form-data">
             @csrf 
             @method('PUT')
 
@@ -196,7 +238,7 @@
                         <input id="edit_email" name="email" type="email" class="form-control" required>
                     </div>
 
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label class="form-label">Address *</label>
                         <input id="edit_address" name="address" class="form-control" required>
                     </div>
@@ -204,6 +246,22 @@
                     <div class="col-md-6">
                         <label class="form-label">NIC *</label>
                         <input id="edit_nic" name="nic" class="form-control" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Identity Card Front</label>
+                        <input type="file" name="id_front" accept="image/*"
+                            onchange="previewImage(this, 'edit_front_preview')" class="form-control">
+
+                        <img id="edit_front_preview" style="width:150px;margin-top:10px;display:none;" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Identity Card Back</label>
+                        <input type="file" name="id_back" accept="image/*"
+                            onchange="previewImage(this, 'edit_back_preview')" class="form-control">
+
+                        <img id="edit_back_preview" style="width:150px;margin-top:10px;display:none;" />
                     </div>
 
                     <div class="col-md-6">
@@ -218,12 +276,22 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Subjects *</label>
-                        <input id="edit_subjects" name="subjects" class="form-control" required>
+                        <select id="edit_subjects" name="subjects[]" class="form-control" multiple required>
+                            @foreach($subjects as $s)
+                            <option value="{{ $s->subject_name }}">{{ $s->subject_name }}</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple.</small>
                     </div>
 
                     <div class="col-md-6">
                         <label class="form-label">Grades *</label>
-                        <input id="edit_grades" name="grades" class="form-control" required>
+                        <select id="edit_grades" name="grades[]" class="form-control" multiple required>
+                            @foreach($grades as $g)
+                            <option value="{{ $g->grade_name }}">{{ $g->grade_name }}</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple.</small>
                     </div>
 
                     <div class="col-md-6">
@@ -257,40 +325,100 @@ document.addEventListener('DOMContentLoaded', function () {
 
     editButtons.forEach(btn => {
         btn.addEventListener('click', function () {
+
             const id = this.dataset.id;
 
-            // Populate form fields
             document.getElementById('edit_name').value = this.dataset.name || '';
             document.getElementById('edit_address').value = this.dataset.address || '';
             document.getElementById('edit_nic').value = this.dataset.nic || '';
             document.getElementById('edit_email').value = this.dataset.email || '';
             document.getElementById('edit_phone1').value = this.dataset.phone1 || '';
             document.getElementById('edit_phone2').value = this.dataset.phone2 || '';
-            document.getElementById('edit_subjects').value = this.dataset.subjects || '';
-            document.getElementById('edit_grades').value = this.dataset.grades || '';
             document.getElementById('edit_username').value = this.dataset.username || '';
-            
-            // Clear password field
             document.getElementById('edit_password').value = '';
 
-            // Set form action
-            document.getElementById('editForm').action = `/teachers/${id}`;
+            const subjects = JSON.parse(this.dataset.subjects || "[]");
+            const grades   = JSON.parse(this.dataset.grades || "[]");
 
-            console.log('Form action set to:', document.getElementById('editForm').action);
+            const subjectSelect = document.getElementById('edit_subjects');
+            const gradeSelect   = document.getElementById('edit_grades');
+
+            [...subjectSelect.options].forEach(opt => {
+                opt.selected = subjects.includes(opt.value);
+            });
+
+            [...gradeSelect.options].forEach(opt => {
+                opt.selected = grades.includes(opt.value);
+            });
+
+            const idFrontPreview = document.getElementById('edit_front_preview');
+            const idBackPreview = document.getElementById('edit_back_preview');
+
+            const idFront = this.dataset.id_front;
+            const idBack = this.dataset.id_back;
+
+            if (idFront) {
+                idFrontPreview.src = `/storage/${idFront}`;
+                idFrontPreview.style.display = 'block';
+            } else {
+                idFrontPreview.src = '';
+                idFrontPreview.style.display = 'none';
+            }
+
+            if (idBack) {
+                idBackPreview.src = `/storage/${idBack}`;
+                idBackPreview.style.display = 'block';
+            } else {
+                idBackPreview.src = '';
+                idBackPreview.style.display = 'none';
+            }
+
+            document.getElementById('editForm').action = `/teachers/${id}`;
 
             modal.show();
         });
     });
 
-    // Reopen modal if there are validation errors
-    @if ($errors->any())
-        // Check if we have old input, which indicates a failed form submission
-        @if(old('name'))
-            modal.show();
-        @endif
-    @endif
+});
+function previewImage(input, imgPreviewId) {
+    let file = input.files[0];
+    if (file) {
+        let reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById(imgPreviewId).src = e.target.result;
+            document.getElementById(imgPreviewId).style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const deleteButtons = document.querySelectorAll('.deleteBtn');
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            const form = this.closest('.deleteForm');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This action cannot be undone!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
 
 });
 </script>
+
 
 @endsection

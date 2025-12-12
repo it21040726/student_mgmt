@@ -16,10 +16,12 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone1');
             $table->string('phone2')->nullable();
-            $table->string('subjects')->nullable(); 
-            $table->string('grades')->nullable();
+            $table->json('subjects')->nullable();
+            $table->json('grades')->nullable();
             $table->string('username')->unique();
             $table->string('password');
+            $table->string('id_front')->nullable();
+            $table->string('id_back')->nullable();
             $table->timestamps();
         });
 
@@ -31,9 +33,11 @@ return new class extends Migration
             $table->string('phone1');
             $table->string('phone2')->nullable();
             $table->string('guardian_phone1');
-            $table->string('guardian_phone2')->nullable();
             $table->string('current_grade');
             $table->string('classroom');
+            $table->string('id_front')->nullable();
+            $table->string('id_back')->nullable();
+            $table->string('profile_img')->nullable();
             $table->timestamps();
         });
         
