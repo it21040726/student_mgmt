@@ -37,6 +37,8 @@ Route::middleware([AdminAuth::class])->group(function () {
         Route::put('/{id}', [StudentController::class, 'update'])->name('students.update');
         Route::delete('/{id}', [StudentController::class, 'destroy'])->name('students.destroy');
         Route::get('/search', [StudentController::class, 'search'])->name('students.search');
+        Route::post('/import', [StudentController::class, 'import'])->name('students.import');
+        Route::get('/export-pdf', [StudentController::class, 'exportPdf'])->name('students.export.pdf');
     });
 
     // Teacher Routes
@@ -48,6 +50,8 @@ Route::middleware([AdminAuth::class])->group(function () {
         Route::put('/{id}', [TeacherController::class, 'update'])->name('teachers.update');
         Route::delete('/{id}', [TeacherController::class, 'destroy'])->name('teachers.destroy');
         Route::get('/search', [TeacherController::class, 'search'])->name('teachers.search');
+        Route::post('/import', [TeacherController::class, 'import'])->name('teachers.import');
+        Route::get('/export-pdf', [TeacherController::class, 'exportPdf'])->name('teachers.export.pdf');
     });
 
     // Course Routes

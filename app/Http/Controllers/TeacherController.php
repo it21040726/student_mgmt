@@ -5,6 +5,7 @@ use App\Models\Grade;
 use App\Models\Subject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TeacherController extends Controller
 {
@@ -115,7 +116,7 @@ class TeacherController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->input('query'); // FIX: was $request->query
+        $query = $request->input('query'); 
         
         $teachers = Teacher::where('id', 'LIKE', "%$query%")
             ->orWhere('name', 'LIKE', "%$query%")
@@ -123,5 +124,91 @@ class TeacherController extends Controller
             ->get();
 
         return view('teachers.index', compact('teachers'));
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:2048'
+        ]);
+
+        $file = $request->file('csv_file');
+        $path = $file->getRealPath();
+        
+        $csvData = array_map('str_getcsv', file($path));
+        $headers = array_map('trim', $csvData[0]);
+        
+        unset($csvData[0]);
+        
+        $imported = 0;
+        $errors = [];
+        
+        foreach ($csvData as $index => $row) {
+            $rowNumber = $index + 2;
+            
+            if (empty(array_filter($row))) {
+                continue;
+            }
+            
+            try {
+                $subjectsArray = !empty($row[6]) ? array_map('trim', explode(',', $row[6])) : [];
+                $gradesArray = !empty($row[7]) ? array_map('trim', explode(',', $row[7])) : [];
+                
+                $data = [
+                    'name' => $row[0] ?? '',
+                    'address' => $row[1] ?? '',
+                    'nic' => $row[2] ?? '',
+                    'email' => $row[3] ?? '',
+                    'phone1' => $row[4] ?? '',
+                    'phone2' => $row[5] ?? null,
+                    'subjects' => json_encode($subjectsArray),
+                    'grades' => json_encode($gradesArray),
+                    'username' => $row[8] ?? '',
+                    'password' => bcrypt('12345678'),
+                    'id_front' => 'default.jpg',
+                    'id_back' => 'default.jpg'
+                ];
+                
+                if (empty($data['name']) || empty($data['address']) || empty($data['nic']) ||
+                    empty($data['email']) || empty($data['phone1']) || empty($data['username']) ||
+                    empty($subjectsArray) || empty($gradesArray)) {
+                    $errors[] = "Row {$rowNumber}: Missing required fields";
+                    continue;
+                }
+                
+                if (Teacher::where('email', $data['email'])->exists()) {
+                    $errors[] = "Row {$rowNumber}: Email '{$data['email']}' already exists";
+                    continue;
+                }
+                
+                if (Teacher::where('username', $data['username'])->exists()) {
+                    $errors[] = "Row {$rowNumber}: Username '{$data['username']}' already exists";
+                    continue;
+                }
+                
+                Teacher::create($data);
+                $imported++;
+                
+            } catch (\Exception $e) {
+                $errors[] = "Row {$rowNumber}: " . $e->getMessage();
+            }
+        }
+        
+        $message = "{$imported} teacher(s) imported successfully.";
+        if (!empty($errors)) {
+            $message .= " " . count($errors) . " row(s) failed.";
+        }
+        
+        return back()->with([
+            'success' => $message,
+            'import_errors' => $errors
+        ]);
+    }
+
+    public function exportPdf()
+    {
+        $teachers = Teacher::all();
+        $pdf = Pdf::loadView('teachers.pdf', compact('teachers'));
+        return $pdf->download('teachers_' . date('Y-m-d_H-i-s') . '.pdf');
     }
 }

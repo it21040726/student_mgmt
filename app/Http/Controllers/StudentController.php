@@ -7,6 +7,7 @@ use App\Models\Grade;
 use App\Models\Classroom;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class StudentController extends Controller
 {
@@ -121,7 +122,7 @@ class StudentController extends Controller
     {
         $query = $request->input('query');
         $grades = Grade::all();
-        $classes = Classroom::all();
+        $classes = Classroom::all(); 
 
         $students = Student::where('id', 'LIKE', "%$query%")
             ->orWhere('name', 'LIKE', "%$query%")
@@ -130,5 +131,87 @@ class StudentController extends Controller
             ->get();
 
         return view('students.index', compact('students', 'grades', 'classes'));
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:2048'
+        ]);
+
+        $file = $request->file('csv_file');
+        $path = $file->getRealPath();
+        
+        $csvData = array_map('str_getcsv', file($path));
+        $headers = array_map('trim', $csvData[0]);
+        
+        // Remove header row
+        unset($csvData[0]);
+        
+        $imported = 0;
+        $errors = [];
+        
+        foreach ($csvData as $index => $row) {
+            $rowNumber = $index + 2; // +2 because index starts at 0 and we removed header
+            
+            // Skip empty rows
+            if (empty(array_filter($row))) {
+                continue;
+            }
+            
+            try {
+                // Map CSV columns to database fields
+                $data = [
+                    'name' => $row[0] ?? '',
+                    'address' => $row[1] ?? '',
+                    'email' => $row[2] ?? '',
+                    'phone1' => $row[3] ?? '',
+                    'phone2' => $row[4] ?? null,
+                    'guardian_phone1' => $row[5] ?? '',
+                    'current_grade' => $row[6] ?? '',
+                    'classroom' => $row[7] ?? '',
+                    'id_front' => 'default.jpg',
+                    'id_back' => 'default.jpg',
+                    'profile_img' => 'default.jpg'
+                ];
+                
+                // Validate required fields
+                if (empty($data['name']) || empty($data['email']) || empty($data['address']) || 
+                    empty($data['phone1']) || empty($data['guardian_phone1']) || 
+                    empty($data['current_grade']) || empty($data['classroom'])) {
+                    $errors[] = "Row {$rowNumber}: Missing required fields";
+                    continue;
+                }
+                
+                // Check if email already exists
+                if (Student::where('email', $data['email'])->exists()) {
+                    $errors[] = "Row {$rowNumber}: Email '{$data['email']}' already exists";
+                    continue;
+                }
+                
+                Student::create($data);
+                $imported++;
+                
+            } catch (\Exception $e) {
+                $errors[] = "Row {$rowNumber}: " . $e->getMessage();
+            }
+        }
+        
+        $message = "{$imported} student(s) imported successfully.";
+        if (!empty($errors)) {
+            $message .= " " . count($errors) . " row(s) failed.";
+        }
+        
+        return back()->with([
+            'success' => $message,
+            'import_errors' => $errors
+        ]);
+    }
+
+    public function exportPdf()
+    {
+        $students = Student::all();
+        $pdf = Pdf::loadView('students.pdf', compact('students'));
+        return $pdf->download('students_' . date('Y-m-d_H-i-s') . '.pdf');
     }
 }

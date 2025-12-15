@@ -14,14 +14,33 @@
             <button class="btn btn-primary" type="submit">Search</button>
         </form>
 
-        <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#addModal">
-            + Add Student
-        </button>
+        <div class="d-flex gap-2">
+            <a href="{{ route('students.export.pdf') }}" class="btn btn-danger text-white">
+                📄 Export PDF
+            </a>
+            <button class="btn btn-success text-white" data-bs-toggle="modal" data-bs-target="#importModal">
+                📥 Import CSV
+            </button>
+            <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#addModal">
+                + Add Student
+            </button>
+        </div>
     </div>
 </div>
 
 @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
+@endif
+
+@if(session('import_errors'))
+    <div class="alert alert-warning">
+        <strong>Import Errors:</strong>
+        <ul class="mb-0">
+            @foreach(session('import_errors') as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
 @endif
 
 @if ($errors->any())
@@ -56,7 +75,7 @@
             <tr>
                 <td>{{ $s->id }}</td>
                 <td>
-                    @if($s->profile_img)
+                    @if($s->profile_img && $s->profile_img !== 'default.jpg')
                         <img src="{{ asset('storage/'.$s->profile_img) }}" 
                              alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
                     @else
@@ -92,14 +111,6 @@
                             ✏️ Edit
                         </button>
 
-                        <!-- <form action="{{ route('students.destroy', $s->id) }}" method="POST" style="display: inline;">
-                            @csrf 
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete student?')">
-                                🗑️ Delete
-                            </button>
-                        </form> -->
-
                         <form method="POST" action="{{ route('students.destroy', $s->id) }}" class="d-inline deleteForm">
                             @csrf
                             @method('DELETE')
@@ -115,6 +126,56 @@
         </tbody>
 
     </table>
+</div>
+
+{{-- ========================= IMPORT CSV MODAL ========================= --}}
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Import Students from CSV</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form action="{{ route('students.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select CSV File *</label>
+                        <input type="file" name="csv_file" accept=".csv" class="form-control" required>
+                        <small class="text-muted">Maximum file size: 2MB</small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>CSV Format:</strong>
+                        <p class="mb-2">Your CSV file should have the following columns in order:</p>
+                        <ol class="mb-2">
+                            <li>Name</li>
+                            <li>Address</li>
+                            <li>Email</li>
+                            <li>Phone 1</li>
+                            <li>Phone 2 (optional)</li>
+                            <li>Guardian Phone</li>
+                            <li>Current Grade</li>
+                            <li>Classroom</li>
+                        </ol>
+                        <small><strong>Note:</strong> Profile images and ID cards will be set to default values. You can update them individually later.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <a href="#" onclick="downloadSampleCSV(); return false;" class="btn btn-sm btn-outline-primary">
+                            📄 Download Sample CSV
+                        </a>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 {{-- ========================= ADD MODAL ========================= --}}
@@ -342,21 +403,21 @@ document.addEventListener('DOMContentLoaded', function () {
             const frontPreview = document.getElementById('edit_front_preview');
             const backPreview = document.getElementById('edit_back_preview');
 
-            if (profileImg) {
+            if (profileImg && profileImg !== 'default.jpg') {
                 profilePreview.src = `/storage/${profileImg}`;
                 profilePreview.style.display = 'block';
             } else {
                 profilePreview.style.display = 'none';
             }
 
-            if (idFront) {
+            if (idFront && idFront !== 'default.jpg') {
                 frontPreview.src = `/storage/${idFront}`;
                 frontPreview.style.display = 'block';
             } else {
                 frontPreview.style.display = 'none';
             }
 
-            if (idBack) {
+            if (idBack && idBack !== 'default.jpg') {
                 backPreview.src = `/storage/${idBack}`;
                 backPreview.style.display = 'block';
             } else {
@@ -381,6 +442,22 @@ function previewImage(input, imgPreviewId) {
         };
         reader.readAsDataURL(file);
     }
+}
+
+function downloadSampleCSV() {
+    const csvContent = "Name,Address,Email,Phone 1,Phone 2,Guardian Phone,Current Grade,Classroom\n" +
+                      "John Doe,123 Main St,john@example.com,1234567890,0987654321,1122334455,Grade 10,Class A\n" +
+                      "Jane Smith,456 Oak Ave,jane@example.com,2345678901,,2233445566,Grade 9,Class B";
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'student_import_sample.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
 }
 
 document.addEventListener('DOMContentLoaded', function () {

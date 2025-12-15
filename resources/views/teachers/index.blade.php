@@ -14,14 +14,33 @@
             <button class="btn btn-primary" type="submit">Search</button>
         </form>
 
-        <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#addModal">
-            + Add Teacher
-        </button>
+        <div class="d-flex gap-2">
+            <a href="{{ route('teachers.export.pdf') }}" class="btn btn-danger text-white">
+                📄 Export PDF
+            </a>
+            <button class="btn btn-success text-white" data-bs-toggle="modal" data-bs-target="#importModal">
+                📥 Import CSV
+            </button>
+            <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#addModal">
+                + Add Teacher
+            </button>
+        </div>
     </div>
 </div>
 
 @if(session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
+@endif
+
+@if(session('import_errors'))
+    <div class="alert alert-warning">
+        <strong>Import Errors:</strong>
+        <ul class="mb-0">
+            @foreach(session('import_errors') as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
 @endif
 
 @if ($errors->any())
@@ -87,14 +106,6 @@
                             ✏️ Edit
                         </button>
 
-                        <!-- <form action="{{ route('teachers.destroy', $t->id) }}" method="POST" style="display: inline;">
-                            @csrf 
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete teacher?')">
-                                🗑️ Delete
-                            </button>
-                        </form> -->
-
                         <form method="POST" action="{{ route('teachers.destroy', $t->id) }}" class="d-inline deleteForm">
                             @csrf
                             @method('DELETE')
@@ -110,6 +121,57 @@
         </tbody>
 
     </table>
+</div>
+
+{{-- ========================= IMPORT CSV MODAL ========================= --}}
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Import Teachers from CSV</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form action="{{ route('teachers.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select CSV File *</label>
+                        <input type="file" name="csv_file" accept=".csv" class="form-control" required>
+                        <small class="text-muted">Maximum file size: 2MB</small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>CSV Format:</strong>
+                        <p class="mb-2">Your CSV file should have the following columns in order:</p>
+                        <ol class="mb-2">
+                            <li>Name</li>
+                            <li>Address</li>
+                            <li>NIC</li>
+                            <li>Email</li>
+                            <li>Phone 1</li>
+                            <li>Phone 2 (optional)</li>
+                            <li>Subjects (comma-separated, e.g., "Math,Science")</li>
+                            <li>Grades (comma-separated, e.g., "Grade 10,Grade 11")</li>
+                            <li>Username</li>
+                        </ol>
+                        <small><strong>Note:</strong> Password will be set to <code>12345678</code> by default. ID cards will be set to default placeholders. Teachers should change their password after first login.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <a href="#" onclick="downloadTeacherSampleCSV(); return false;" class="btn btn-sm btn-outline-primary">
+                            📄 Download Sample CSV
+                        </a>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 {{-- ========================= ADD MODAL ========================= --}}
@@ -357,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const idFront = this.dataset.id_front;
             const idBack = this.dataset.id_back;
 
-            if (idFront) {
+            if (idFront && idFront !== 'default.jpg') {
                 idFrontPreview.src = `/storage/${idFront}`;
                 idFrontPreview.style.display = 'block';
             } else {
@@ -365,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 idFrontPreview.style.display = 'none';
             }
 
-            if (idBack) {
+            if (idBack && idBack !== 'default.jpg') {
                 idBackPreview.src = `/storage/${idBack}`;
                 idBackPreview.style.display = 'block';
             } else {
@@ -380,6 +442,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
+
 function previewImage(input, imgPreviewId) {
     let file = input.files[0];
     if (file) {
@@ -390,6 +453,22 @@ function previewImage(input, imgPreviewId) {
         };
         reader.readAsDataURL(file);
     }
+}
+
+function downloadTeacherSampleCSV() {
+    const csvContent = "Name,Address,NIC,Email,Phone 1,Phone 2,Subjects,Grades,Username\n" +
+                      "John Doe,123 Main St,987654321V,john@example.com,1234567890,0987654321,\"Math,Science\",\"Grade 10,Grade 11\",john.doe\n" +
+                      "Jane Smith,456 Oak Ave,123456789V,jane@example.com,2345678901,,\"English,History\",\"Grade 9,Grade 10\",jane.smith";
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'teacher_import_sample.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
 }
 
 document.addEventListener('DOMContentLoaded', function () {
